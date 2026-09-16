@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>GEOSAT</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+  :root{
+    --ink:#2b332f; --ink-dim:#5c655f; --ink-faint:rgba(43,51,47,0.45);
+    --teal:#55696a; --teal-dim:rgba(85,105,106,0.5); --teal-faint:rgba(85,105,106,0.16);
+    --line:rgba(40,50,46,0.22); --bg1:#ccd1cc; --bg2:#bcc2bd;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{width:100%;height:100%;background:#c6ccc7;}
+  body{width:100%;height:100%;overflow:hidden;color:var(--ink);user-select:none;
+    background:linear-gradient(155deg,var(--bg1),var(--bg2));
+    font-family:'Share Tech Mono','Consolas',monospace;text-transform:uppercase;}
+  body::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;
+    background:repeating-linear-gradient(0deg,rgba(40,50,46,0.035) 0px,rgba(40,50,46,0.035) 1px,transparent 2px,transparent 3px);}
+
+  .term{position:fixed;inset:4vmin;z-index:1;display:flex;flex-direction:column;gap:2.6vmin;}
+  .thead{display:flex;justify-content:space-between;align-items:center;padding:2.4vmin 3vmin;background:#4a544e;border-bottom:2px solid var(--teal);}
+  .thead .ttl{display:flex;align-items:center;gap:2vmin;color:#eef2ef;font-size:3.2vmin;letter-spacing:2px;}
+  .thead .ttl svg{width:6vmin;height:6vmin;stroke:#eef2ef;}
+  .thead .rgt{color:#dfe4e0;font-size:2.2vmin;letter-spacing:1px;}
+  #themebtn{cursor:pointer;}
+
+  .card{position:relative;background:rgba(255,255,255,0.12);border:1px solid var(--teal-dim);padding:5vmin 3.4vmin 3.4vmin;}
+  .brk{position:absolute;width:3.4vmin;height:3.4vmin;border:0.5vmin solid var(--teal);}
+  .b-tl{top:-0.4vmin;left:-0.4vmin;border-right:none;border-bottom:none;}
+  .b-tr{top:-0.4vmin;right:-0.4vmin;border-left:none;border-bottom:none;}
+  .b-bl{bottom:-0.4vmin;left:-0.4vmin;border-right:none;border-top:none;}
+  .b-br{bottom:-0.4vmin;right:-0.4vmin;border-left:none;border-top:none;}
+  .lab{position:absolute;top:0;left:2.8vmin;transform:translateY(-50%);background:#c6ccc7;padding:0 1.4vmin;color:var(--teal);font-size:2.2vmin;letter-spacing:2px;}
+
+  #greeting{font-size:3.2vmin;letter-spacing:2px;color:var(--ink-dim);margin-bottom:1.4vmin;}
+  #clock{font-size:17vmin;font-weight:400;line-height:.92;color:var(--ink);}
+  #ampm{font-size:4.6vmin;color:var(--ink-dim);margin-left:1.6vmin;}
+  #date{font-size:2.8vmin;color:var(--ink-dim);margin-top:1.2vmin;}
+  #weather{display:flex;align-items:center;gap:1.8vmin;margin-top:3vmin;font-size:3.2vmin;flex-wrap:wrap;}
+  #weather .icon{color:var(--teal);}
+  .wi{width:1em;height:1em;vertical-align:-0.15em;}
+  #weather .temp{color:var(--ink);}
+  #weather .sep{color:var(--teal);}
+  #weather .loc{color:var(--ink-dim);width:100%;font-size:2.6vmin;margin-top:0.6vmin;}
+  #weather.error{color:var(--ink-dim);font-size:2.6vmin;}
+
+  .console{flex:1;display:flex;flex-direction:column;min-height:0;font-size:2.3vmin;}
+  .con-head{position:absolute;top:0;left:2.8vmin;transform:translateY(-50%);background:#c6ccc7;padding:0 1.4vmin;color:var(--teal);font-size:2.2vmin;letter-spacing:1px;}
+  #conlog{flex:1;overflow:hidden;line-height:1.7;color:var(--ink-dim);min-height:0;}
+  .con-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .con-line .tsx{color:var(--ink-faint);}
+  .con-ok{color:var(--teal);}
+  .con-prompt{margin-top:1.4vmin;color:var(--ink);}
+  .caret{display:inline-block;animation:cbl 1s steps(1) infinite;}
+  @keyframes cbl{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+
+  .hazard{height:2.8vmin;flex:none;background:repeating-linear-gradient(45deg,rgba(40,50,46,0.20) 0 1.6vmin,transparent 1.6vmin 3.2vmin);}
+  .tfoot{display:flex;justify-content:space-between;align-items:center;font-size:2vmin;letter-spacing:1px;color:var(--ink-dim);}
+  .tfoot b{color:var(--teal);font-weight:400;}
+  .apps{flex:none;}
+  .appgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2vmin;}
+  .app{width:13vmin;height:13vmin;background:rgba(255,255,255,0.08);border:1px solid var(--teal-dim);}
+
+  html[data-theme="dark"] body{background:linear-gradient(155deg,#151c20,#0c1215);color:#cdd6d0;}
+  html[data-theme="dark"]{--ink:#cdd6d0;--ink-dim:#8b948e;--ink-faint:rgba(205,214,208,0.4);--line:rgba(205,214,208,0.2);}
+  html[data-theme="dark"] body::before{background:repeating-linear-gradient(0deg,rgba(170,190,180,0.05) 0px,rgba(170,190,180,0.05) 1px,transparent 2px,transparent 3px);}
+  html[data-theme="dark"] .thead{background:#0e1519;}
+  html[data-theme="dark"] .lab,html[data-theme="dark"] .con-head{background:#141b1f;}
+  html[data-theme="dark"] .card{background:rgba(255,255,255,0.05);}
+  html[data-theme="dark"] .hazard{background:repeating-linear-gradient(45deg,rgba(205,214,208,0.14) 0 1.6vmin,transparent 1.6vmin 3.2vmin);}
+</style>
+</head>
+<body>
+  <div class="term">
+    <div class="thead">
+      <div class="ttl">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4">
+          <circle cx="12" cy="12" r="2.6"/><ellipse cx="12" cy="12" rx="10" ry="4"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
+          <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
+        </svg>
+        GEOSAT
+      </div>
+      <div class="rgt"><span id="themebtn">◐ AUTO</span></div>
+    </div>
+
+    <div class="card">
+      <span class="brk b-tl"></span><span class="brk b-tr"></span><span class="brk b-bl"></span><span class="brk b-br"></span>
+      <div class="lab">HORA LOCAL</div>
+      <div id="greeting">BIENVENIDO</div>
+      <div><span id="clock">--:--</span><span id="ampm"></span></div>
+      <div id="date">Cargando fecha...</div>
+      <div id="weather"><span class="loc">Cargando clima...</span></div>
+    </div>
+
+    <div class="card console">
+      <span class="brk b-tl"></span><span class="brk b-tr"></span><span class="brk b-bl"></span><span class="brk b-br"></span>
+      <div class="con-head">METEO_DAEMON --RUN</div>
+      <div id="conlog"></div>
+      <div class="con-prompt">root@geosat:~$ <span class="caret">&#9608;</span></div>
+    </div>
+
+    <div class="card apps">
+      <span class="brk b-tl"></span><span class="brk b-tr"></span><span class="brk b-bl"></span><span class="brk b-br"></span>
+      <div class="lab">ACCESOS</div>
+      <div class="appgrid"><div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div></div>
+    </div>
+
+    <div class="hazard"></div>
+    <div class="tfoot">
+      <span>ESTACION <b>METEO-SAT</b></span>
+      <span id="geo">LAT --- LONG ---</span>
+    </div>
+  </div>
+<script>
+  const WMO={0:["Despejado"],1:["Casi despejado"],2:["Parcial"],3:["Nublado"],45:["Niebla"],48:["Niebla"],51:["Llovizna"],53:["Llovizna"],55:["Llovizna"],56:["Llov. helada"],57:["Llov. helada"],61:["Lluvia lig."],63:["Lluvia mod."],65:["Lluvia fuerte"],66:["Lluvia hel."],67:["Lluvia hel."],71:["Nieve lig."],73:["Nieve mod."],75:["Nieve fuerte"],77:["Nieve"],80:["Chubasco"],81:["Chubasco"],82:["Torrencial"],85:["Chub. nieve"],86:["Chub. nieve"],95:["Tormenta"],96:["Tormenta"],99:["Tormenta"]};
+  const ICO={sun:'<circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.5" y1="4.5" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.5" y2="4.5"/>',pcloud:'<circle cx="7" cy="7" r="2.6"/><line x1="7" y1="2.4" x2="7" y2="3.7"/><line x1="7" y1="10.3" x2="7" y2="11.6"/><line x1="2.4" y1="7" x2="3.7" y2="7"/><line x1="10.3" y1="7" x2="11.6" y2="7"/><path d="M18 12h-1.05A6.5 6.5 0 1 0 10 20h8a4 4 0 0 0 0-8z"/>',cloud:'<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',fog:'<line x1="3" y1="8" x2="21" y2="8"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/><line x1="7" y1="20" x2="17" y2="20"/>',rain:'<path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><line x1="8" y1="17" x2="7" y2="21"/><line x1="12" y1="17" x2="11" y2="22"/><line x1="16" y1="17" x2="15" y2="21"/>',snow:'<path d="M20 15.58A5 5 0 0 0 18 6h-1.26A8 8 0 1 0 4 14.25"/><line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="20" x2="12.01" y2="20"/><line x1="16" y1="18" x2="16.01" y2="18"/><line x1="10" y1="22" x2="10.01" y2="22"/><line x1="14" y1="22" x2="14.01" y2="22"/>',storm:'<path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="12 11 9 16 13 16 10 22"/>'};
+  function wtype(c){c=+c;if(c===0)return"sun";if(c===1||c===2)return"pcloud";if(c===3)return"cloud";if(c===45||c===48)return"fog";if((c>=71&&c<=77)||c===85||c===86)return"snow";if(c>=95)return"storm";return"rain";}
+  function wsvg(c){return '<svg class="wi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICO[wtype(c)]+'</svg>';}
+  const NOMBRE="LUIS";
+  var LAT=null, LON=null, CITY="";
+
+  /* ===== Tema claro/oscuro (auto por hora, con toque manual) ===== */
+  var SF_MODE_KEY="sf_thememode";
+  var themeMode="auto";try{themeMode=localStorage.getItem(SF_MODE_KEY)||"auto";}catch(e){}
+  function computeTheme(){if(themeMode==="light")return "light";if(themeMode==="dark")return "dark";var h=new Date().getHours();return (h>=7&&h<18)?"light":"dark";}
+  function applyTheme(){document.documentElement.setAttribute("data-theme",computeTheme());var b=document.getElementById("themebtn");if(b)b.textContent="◐ "+(themeMode==="auto"?"AUTO":themeMode==="light"?"CLARO":"OSCURO");}
+  function cycleTheme(){themeMode=(themeMode==="auto")?"light":(themeMode==="light")?"dark":"auto";try{localStorage.setItem(SF_MODE_KEY,themeMode);}catch(e){}applyTheme();}
+  applyTheme();setInterval(applyTheme,60000);
+  (function(){var b=document.getElementById("themebtn");if(b)b.addEventListener("click",cycleTheme);})();
+
+  /* ===== Reloj / fecha / saludo ===== */
+  function updateClock(){
+    const now=new Date();let h=now.getHours();const m=now.getMinutes();
+    const ampm=h>=12?"PM":"AM";let hd=h%12;if(hd===0)hd=12;
+    document.getElementById("clock").textContent=hd+":"+(m<10?"0"+m:m);
+    document.getElementById("ampm").textContent=ampm;
+    document.getElementById("date").textContent=now.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+    let s="BUENAS NOCHES";if(h>=5&&h<12)s="BUENOS DÍAS";else if(h>=12&&h<20)s="BUENAS TARDES";
+    document.getElementById("greeting").textContent=s+", "+NOMBRE;
+  }
+  updateClock();setInterval(updateClock,1000);
+
+  /* ===== Clima por IP ===== */
+  async function geoIP(){
+    try{const r=await fetch("https://ipwho.is/");const d=await r.json();if(d&&d.success!==false&&d.latitude){LAT=d.latitude;LON=d.longitude;CITY=(d.city||"").toUpperCase();return true;}}catch(e){}
+    return false;
+  }
+  async function updateWeather(){
+    const wEl=document.getElementById("weather");
+    try{
+      if(LAT===null){await geoIP();}
+      if(LAT===null)throw new Error("sin ubicacion");
+      const url="https://api.open-meteo.com/v1/forecast?latitude="+LAT+"&longitude="+LON+"&current=temperature_2m,weather_code&timezone=auto";
+      const res=await fetch(url);if(!res.ok)throw new Error("HTTP "+res.status);
+      const data=await res.json();const cur=data.current;
+      const desc=(WMO[cur.weather_code]||[""])[0];
+      wEl.className="";
+      wEl.innerHTML='<span class="icon">'+wsvg(cur.weather_code)+'</span><span class="temp">'+Math.round(cur.temperature_2m)+'°C</span><span>'+desc+'</span><span class="sep">•</span><span class="loc">'+(CITY||"")+'</span>';
+      document.getElementById("geo").textContent="EST. "+(CITY||"---")+" · LAT "+Number(LAT).toFixed(2)+" LONG "+Number(LON).toFixed(2);
+    }catch(e){wEl.className="error";wEl.textContent="Clima no disponible";console.error(e);}
+  }
+  updateWeather();setInterval(updateWeather,15*60*1000);
+
+  /* ===== Consola simulada ===== */
+  const conlog=document.getElementById("conlog");
+  const pad=n=>n<10?"0"+n:n;
+  function ts(){const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());}
+  function hex(n){let s="";for(let i=0;i<n;i++)s+="0123456789ABCDEF"[Math.floor(Math.random()*16)];return s;}
+  const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const POOL=[
+    ()=>'[<span class="con-ok">OK</span>] enlace satelital estable · RSSI -'+R(58,78)+'dB',
+    ()=>'sincronizando sensores meteo... '+R(90,100)+'%',
+    ()=>'rx paquete 0x'+hex(4)+' · '+R(120,980)+' bytes',
+    ()=>'scan sector '+R(0,15)+' · geo-fix OK',
+    ()=>'meteo_daemon: recalculando pronostico...',
+    ()=>'[<span class="con-ok">OK</span>] cache actualizada',
+    ()=>'delta_presion='+(Math.random()*2).toFixed(2)+' mb/h',
+    ()=>'> ejecutando clima.update()',
+    ()=>'buffer '+hex(2)+':'+hex(2)+':'+hex(2)+' verificado',
+    ()=>'uplink estable · '+R(12,64)+' Mbps',
+    ()=>'> fetch open-meteo :: 200 OK'
+  ];
+  let MAX=10;
+  function addLine(){
+    const div=document.createElement("div");div.className="con-line";
+    div.innerHTML='<span class="tsx">'+ts()+'</span> '+POOL[Math.floor(Math.random()*POOL.length)]();
+    conlog.appendChild(div);
+    if(conlog.firstChild)MAX=Math.max(5,Math.floor(conlog.clientHeight/conlog.firstChild.offsetHeight));
+    while(conlog.childElementCount>MAX)conlog.removeChild(conlog.firstChild);
+  }
+  for(let i=0;i<10;i++)addLine();
+  setInterval(addLine,950);
+
+</script>
+</body>
+</html>
