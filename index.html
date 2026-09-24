@@ -51,6 +51,8 @@
     overflow:hidden;
     transition:background .6s ease,color .6s ease;
     position:relative;
+    height:100vh;height:100dvh;
+    display:flex;align-items:center;justify-content:center;
   }
   /* soft colored blobs to give the glass something to refract */
   .blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.75;z-index:0;transition:background .6s ease;}
@@ -60,17 +62,19 @@
 
   .wrap{
     position:relative;z-index:1;
-    height:100%;
+    width:100%;
     display:flex;flex-direction:column;
-    gap:2.4vh;
-    padding:6.5vh 5.5vw calc(3vh + env(safe-area-inset-bottom));
+    gap:1.9vh;
+    padding:3vh 5.5vw;
+    transform-origin:center center;
+    will-change:transform;
   }
 
   /* ---- top bar ---- */
   .topbar{display:flex;align-items:center;justify-content:space-between;}
-  .brand{display:flex;align-items:center;gap:2.4vw;font-weight:700;letter-spacing:.14em;font-size:3.4vw;color:var(--ink-2);}
+  .brand{display:flex;align-items:center;gap:3vw;font-weight:700;letter-spacing:.14em;font-size:4.8vw;color:var(--ink-2);}
   .brand .logo{
-    width:8.4vw;height:8.4vw;border-radius:32%;
+    width:11.5vw;height:11.5vw;border-radius:32%;
     background:linear-gradient(140deg,var(--accent),#7aa2ff);
     display:flex;align-items:center;justify-content:center;color:#fff;
     box-shadow:var(--shadow-sm);
@@ -79,8 +83,8 @@
   .theme-btn{
     border:1px solid var(--stroke);
     background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-    color:var(--ink-2);font-family:inherit;font-weight:600;font-size:3vw;letter-spacing:.08em;
-    padding:1.4vw 3.4vw;border-radius:999px;display:flex;align-items:center;gap:1.6vw;
+    color:var(--ink-2);font-family:inherit;font-weight:600;font-size:3.4vw;letter-spacing:.08em;
+    padding:2vw 4vw;border-radius:999px;display:flex;align-items:center;gap:1.6vw;
     box-shadow:var(--shadow-sm);cursor:pointer;
   }
 
@@ -115,14 +119,12 @@
 
   /* ---- week forecast ---- */
   .sect-title{font-size:2.9vw;font-weight:700;letter-spacing:.18em;color:var(--ink-3);text-transform:uppercase;margin-bottom:2vh;}
-  .week{display:flex;justify-content:space-between;gap:1.5vw;}
-  .day{flex:1;display:flex;flex-direction:column;align-items:center;gap:1vh;padding:1.2vh 0;border-radius:4vw;transition:background .4s;}
-  .day.today{background:var(--accent-soft);}
-  .day .dname{font-size:3vw;font-weight:600;color:var(--ink-2);text-transform:capitalize;}
-  .day .dico{width:7.6vw;height:7.6vw;color:var(--accent);}
-  .day .dico svg{width:100%;height:100%;}
-  .day .dmax{font-size:3.4vw;font-weight:700;}
-  .day .dmin{font-size:3vw;font-weight:500;color:var(--ink-3);}
+  .chartwrap{width:100%;}
+  .chartwrap svg{width:100%;height:auto;display:block;overflow:visible;font-family:inherit;}
+  .tc-val{fill:var(--ink);font-weight:700;font-size:27px;}
+  .tc-day{fill:var(--ink-2);font-weight:600;font-size:24px;text-transform:capitalize;}
+  .tc-day.tc-today{fill:var(--accent);font-weight:800;}
+  .tc-min{fill:var(--ink-3);font-weight:500;font-size:21px;}
 
   /* ---- mini calendar ---- */
   .cal-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.6vh;}
@@ -198,7 +200,7 @@
     <!-- week forecast -->
     <div class="card">
       <div class="sect-title">Pronóstico · 7 días</div>
-      <div class="week" id="week"></div>
+      <div class="chartwrap" id="chart"></div>
     </div>
 
     <!-- mini calendar -->
@@ -243,6 +245,57 @@ function wmo(code){
   if(code>=85&&code<=86) return {i:'snow',t:'Nieve'};
   if(code>=95) return {i:'storm',t:'Tormenta'};
   return {i:'cloud',t:'—'};
+}
+
+/* ---------- temperature line chart ---------- */
+function iconAt(key,x,y,size){
+  return '<g style="color:var(--accent)">'+
+    I[key].replace('<svg ','<svg x="'+x+'" y="'+y+'" width="'+size+'" height="'+size+'" ')+
+    '</g>';
+}
+function renderChart(list){
+  const el=document.getElementById('chart'); if(!el) return;
+  const W=700,H=310,left=48,right=652,top=58,bot=182;
+  const n=list.length;
+  const maxs=list.map(d=>d.max);
+  let lo=Math.min.apply(null,maxs), hi=Math.max.apply(null,maxs);
+  if(hi===lo){hi+=1;lo-=1;}
+  const xF=i=>left+i*(right-left)/(n-1);
+  const yF=t=>top+(1-(t-lo)/(hi-lo))*(bot-top);
+  const pts=list.map((d,i)=>({x:xF(i),y:yF(d.max)}));
+  function smooth(p){
+    let d='M'+p[0].x.toFixed(1)+','+p[0].y.toFixed(1);
+    for(let i=0;i<p.length-1;i++){
+      const p0=p[i-1]||p[i],p1=p[i],p2=p[i+1],p3=p[i+2]||p2;
+      const c1x=p1.x+(p2.x-p0.x)/6,c1y=p1.y+(p2.y-p0.y)/6;
+      const c2x=p2.x-(p3.x-p1.x)/6,c2y=p2.y-(p3.y-p1.y)/6;
+      d+=' C'+c1x.toFixed(1)+','+c1y.toFixed(1)+' '+c2x.toFixed(1)+','+c2y.toFixed(1)+' '+p2.x.toFixed(1)+','+p2.y.toFixed(1);
+    }
+    return d;
+  }
+  const line=smooth(pts);
+  const area=line+' L'+pts[n-1].x.toFixed(1)+','+bot+' L'+pts[0].x.toFixed(1)+','+bot+' Z';
+  let s='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+  s+='<defs>'+
+     '<linearGradient id="gl" x1="0" y1="0" x2="1" y2="0">'+
+       '<stop offset="0" stop-color="#4aa3ff"/><stop offset="0.5" stop-color="#37d67a"/><stop offset="1" stop-color="#a06bff"/>'+
+     '</linearGradient>'+
+     '<linearGradient id="ga" x1="0" y1="0" x2="0" y2="1">'+
+       '<stop offset="0" stop-color="#4aa3ff" stop-opacity="0.22"/><stop offset="1" stop-color="#4aa3ff" stop-opacity="0"/>'+
+     '</linearGradient>'+
+     '</defs>';
+  s+='<path d="'+area+'" fill="url(#ga)"/>';
+  s+='<path d="'+line+'" fill="none" stroke="url(#gl)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';
+  list.forEach((d,i)=>{
+    const x=pts[i].x,y=pts[i].y,today=i===0;
+    s+='<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="'+(today?7:5)+'" fill="#fff" stroke="url(#gl)" stroke-width="3"/>';
+    s+='<text class="tc-val" x="'+x.toFixed(1)+'" y="'+(y-15).toFixed(1)+'" text-anchor="middle">'+Math.round(d.max)+'°</text>';
+    s+=iconAt(d.ico, (x-17).toFixed(1), 198, 34);
+    s+='<text class="tc-day'+(today?' tc-today':'')+'" x="'+x.toFixed(1)+'" y="258" text-anchor="middle">'+d.name+'</text>';
+    s+='<text class="tc-min" x="'+x.toFixed(1)+'" y="288" text-anchor="middle">'+Math.round(d.min)+'°</text>';
+  });
+  s+='</svg>';
+  el.innerHTML=s;
 }
 
 /* ---------- theme ---------- */
@@ -315,29 +368,46 @@ async function loadWeather(){
     document.getElementById('nowIco').innerHTML = I[cw.i];
     document.getElementById('nowHum').textContent = c.relative_humidity_2m+'%';
     document.getElementById('nowWind').textContent = Math.round(c.wind_speed_10m)+' km/h';
-    // week
+    // week -> temperature line chart
     const dn=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-    const wk=document.getElementById('week'); wk.innerHTML='';
+    const list=[];
     for(let i=0;i<7;i++){
       const dt=new Date(w.daily.time[i]+'T00:00');
-      const dw=wmo(w.daily.weather_code[i]);
-      const el=document.createElement('div'); el.className='day'+(i===0?' today':'');
-      el.innerHTML='<div class="dname">'+(i===0?'Hoy':dn[dt.getDay()])+'</div>'+
-        '<div class="dico">'+I[dw.i]+'</div>'+
-        '<div class="dmax">'+Math.round(w.daily.temperature_2m_max[i])+'°</div>'+
-        '<div class="dmin">'+Math.round(w.daily.temperature_2m_min[i])+'°</div>';
-      wk.appendChild(el);
+      list.push({
+        name:i===0?'Hoy':dn[dt.getDay()],
+        max:w.daily.temperature_2m_max[i],
+        min:w.daily.temperature_2m_min[i],
+        ico:wmo(w.daily.weather_code[i]).i
+      });
     }
+    renderChart(list);
   }catch(e){
     document.getElementById('nowDesc').textContent='Sin conexión';
   }
+  if(typeof fit==='function') fit();
 }
+
+/* ---------- auto-fit to screen (no scroll, no cutoff) ---------- */
+const wrap=document.querySelector('.wrap');
+function fit(){
+  wrap.style.transform='none';
+  const h=wrap.offsetHeight;
+  const vh=window.innerHeight||document.documentElement.clientHeight;
+  if(h>vh){
+    const s=vh/h;
+    wrap.style.transform='scale('+s+')';
+  }
+}
+window.addEventListener('resize',fit);
+window.addEventListener('orientationchange',()=>setTimeout(fit,200));
 
 /* ---------- init ---------- */
 applyTheme(); tick(); buildCal(); loadWeather();
+requestAnimationFrame(fit);
+setTimeout(fit,300); setTimeout(fit,1500); setTimeout(fit,3000);
 setInterval(tick,1000);
 setInterval(loadWeather,15*60*1000);
-setInterval(buildCal,60*60*1000);
+setInterval(()=>{buildCal();fit();},60*60*1000);
 </script>
 </body>
 </html>
