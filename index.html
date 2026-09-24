@@ -2,199 +2,342 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>GEOSAT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
   :root{
-    --ink:#2b332f; --ink-dim:#5c655f; --ink-faint:rgba(43,51,47,0.45);
-    --teal:#55696a; --teal-dim:rgba(85,105,106,0.5); --teal-faint:rgba(85,105,106,0.16);
-    --line:rgba(40,50,46,0.22); --bg1:#ccd1cc; --bg2:#bcc2bd;
+    --bg1:#dbe6f7; --bg2:#eef2fb; --bg3:#e7ecff;
+    --blob1:#6ea8fe; --blob2:#b7a6ff; --blob3:#7ee0c0;
+    --glass:rgba(255,255,255,0.55);
+    --glass-strong:rgba(255,255,255,0.72);
+    --stroke:rgba(255,255,255,0.7);
+    --stroke-soft:rgba(120,140,190,0.18);
+    --ink:#101f3d;
+    --ink-2:#5a6b8c;
+    --ink-3:#8493b4;
+    --accent:#2f6bff;
+    --accent-soft:rgba(47,107,255,0.14);
+    --pos:#25c26e;
+    --shadow:0 14px 40px rgba(30,55,120,0.16);
+    --shadow-sm:0 6px 18px rgba(30,55,120,0.12);
   }
-  *{margin:0;padding:0;box-sizing:border-box;}
-  html{width:100%;height:100%;background:#c6ccc7;}
-  body{width:100%;height:100%;overflow:hidden;color:var(--ink);user-select:none;
-    background:linear-gradient(155deg,var(--bg1),var(--bg2));
-    font-family:'Share Tech Mono','Consolas',monospace;text-transform:uppercase;}
-  body::before{content:"";position:fixed;inset:0;z-index:2;pointer-events:none;
-    background:repeating-linear-gradient(0deg,rgba(40,50,46,0.035) 0px,rgba(40,50,46,0.035) 1px,transparent 2px,transparent 3px);}
+  body.dark{
+    --bg1:#0a1230; --bg2:#0e1a3e; --bg3:#0a1636;
+    --blob1:#2a52c9; --blob2:#5b3fb0; --blob3:#1f7a63;
+    --glass:rgba(38,54,102,0.38);
+    --glass-strong:rgba(46,64,120,0.5);
+    --stroke:rgba(255,255,255,0.14);
+    --stroke-soft:rgba(255,255,255,0.08);
+    --ink:#eaf0ff;
+    --ink-2:#a7b8de;
+    --ink-3:#7688b3;
+    --accent:#5688ff;
+    --accent-soft:rgba(86,136,255,0.2);
+    --pos:#33d17f;
+    --shadow:0 16px 44px rgba(0,0,0,0.4);
+    --shadow-sm:0 8px 20px rgba(0,0,0,0.32);
+  }
 
-  .term{position:fixed;inset:4vmin;z-index:1;display:flex;flex-direction:column;gap:2.6vmin;}
-  .thead{display:flex;justify-content:space-between;align-items:center;padding:2.4vmin 3vmin;background:#4a544e;border-bottom:2px solid var(--teal);}
-  .thead .ttl{display:flex;align-items:center;gap:2vmin;color:#eef2ef;font-size:3.2vmin;letter-spacing:2px;}
-  .thead .ttl svg{width:6vmin;height:6vmin;stroke:#eef2ef;}
-  .thead .rgt{color:#dfe4e0;font-size:2.2vmin;letter-spacing:1px;}
-  #themebtn{cursor:pointer;}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(160deg,var(--bg1),var(--bg2) 45%,var(--bg3));
+    overflow:hidden;
+    transition:background .6s ease,color .6s ease;
+    position:relative;
+  }
+  /* soft colored blobs to give the glass something to refract */
+  .blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.75;z-index:0;transition:background .6s ease;}
+  .blob.b1{width:52vw;height:52vw;background:var(--blob1);top:-12vh;right:-14vw;}
+  .blob.b2{width:46vw;height:46vw;background:var(--blob2);top:38vh;left:-18vw;opacity:.6;}
+  .blob.b3{width:40vw;height:40vw;background:var(--blob3);bottom:-10vh;right:-8vw;opacity:.55;}
 
-  .card{position:relative;background:rgba(255,255,255,0.12);border:1px solid var(--teal-dim);padding:5vmin 3.4vmin 3.4vmin;}
-  .brk{position:absolute;width:3.4vmin;height:3.4vmin;border:0.5vmin solid var(--teal);}
-  .b-tl{top:-0.4vmin;left:-0.4vmin;border-right:none;border-bottom:none;}
-  .b-tr{top:-0.4vmin;right:-0.4vmin;border-left:none;border-bottom:none;}
-  .b-bl{bottom:-0.4vmin;left:-0.4vmin;border-right:none;border-top:none;}
-  .b-br{bottom:-0.4vmin;right:-0.4vmin;border-left:none;border-top:none;}
-  .lab{position:absolute;top:0;left:2.8vmin;transform:translateY(-50%);background:#c6ccc7;padding:0 1.4vmin;color:var(--teal);font-size:2.2vmin;letter-spacing:2px;}
+  .wrap{
+    position:relative;z-index:1;
+    height:100%;
+    display:flex;flex-direction:column;
+    gap:2.4vh;
+    padding:6.5vh 5.5vw calc(3vh + env(safe-area-inset-bottom));
+  }
 
-  #greeting{font-size:3.2vmin;letter-spacing:2px;color:var(--ink-dim);margin-bottom:1.4vmin;}
-  #clock{font-size:17vmin;font-weight:400;line-height:.92;color:var(--ink);}
-  #ampm{font-size:4.6vmin;color:var(--ink-dim);margin-left:1.6vmin;}
-  #date{font-size:2.8vmin;color:var(--ink-dim);margin-top:1.2vmin;}
-  #weather{display:flex;align-items:center;gap:1.8vmin;margin-top:3vmin;font-size:3.2vmin;flex-wrap:wrap;}
-  #weather .icon{color:var(--teal);}
-  .wi{width:1em;height:1em;vertical-align:-0.15em;}
-  #weather .temp{color:var(--ink);}
-  #weather .sep{color:var(--teal);}
-  #weather .loc{color:var(--ink-dim);width:100%;font-size:2.6vmin;margin-top:0.6vmin;}
-  #weather.error{color:var(--ink-dim);font-size:2.6vmin;}
+  /* ---- top bar ---- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;}
+  .brand{display:flex;align-items:center;gap:2.4vw;font-weight:700;letter-spacing:.14em;font-size:3.4vw;color:var(--ink-2);}
+  .brand .logo{
+    width:8.4vw;height:8.4vw;border-radius:32%;
+    background:linear-gradient(140deg,var(--accent),#7aa2ff);
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    box-shadow:var(--shadow-sm);
+  }
+  .brand .logo svg{width:52%;height:52%;}
+  .theme-btn{
+    border:1px solid var(--stroke);
+    background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    color:var(--ink-2);font-family:inherit;font-weight:600;font-size:3vw;letter-spacing:.08em;
+    padding:1.4vw 3.4vw;border-radius:999px;display:flex;align-items:center;gap:1.6vw;
+    box-shadow:var(--shadow-sm);cursor:pointer;
+  }
 
-  .console{flex:1;display:flex;flex-direction:column;min-height:0;font-size:2.3vmin;}
-  .con-head{position:absolute;top:0;left:2.8vmin;transform:translateY(-50%);background:#c6ccc7;padding:0 1.4vmin;color:var(--teal);font-size:2.2vmin;letter-spacing:1px;}
-  #conlog{flex:1;overflow:hidden;line-height:1.7;color:var(--ink-dim);min-height:0;}
-  .con-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .con-line .tsx{color:var(--ink-faint);}
-  .con-ok{color:var(--teal);}
-  .con-prompt{margin-top:1.4vmin;color:var(--ink);}
-  .caret{display:inline-block;animation:cbl 1s steps(1) infinite;}
-  @keyframes cbl{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+  /* ---- generic glass card ---- */
+  .card{
+    background:var(--glass);
+    backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    border:1px solid var(--stroke);
+    border-radius:6vw;
+    box-shadow:var(--shadow);
+    padding:4.6vw;
+    transition:background .6s ease,border-color .6s ease;
+  }
 
-  .hazard{height:2.8vmin;flex:none;background:repeating-linear-gradient(45deg,rgba(40,50,46,0.20) 0 1.6vmin,transparent 1.6vmin 3.2vmin);}
-  .tfoot{display:flex;justify-content:space-between;align-items:center;font-size:2vmin;letter-spacing:1px;color:var(--ink-dim);}
-  .tfoot b{color:var(--teal);font-weight:400;}
-  .apps{flex:none;}
-  .appgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:2vmin;}
-  .app{width:13vmin;height:13vmin;background:rgba(255,255,255,0.08);border:1px solid var(--teal-dim);}
+  /* ---- hero (clock) ---- */
+  .hero .greet{font-size:3.6vw;font-weight:500;color:var(--ink-2);letter-spacing:.02em;}
+  .hero .time{font-size:15.5vw;font-weight:800;line-height:1;letter-spacing:-.02em;margin:.4vh 0 .2vh;}
+  .hero .time .ampm{font-size:5vw;font-weight:600;color:var(--ink-3);margin-left:1.6vw;}
+  .hero .date{font-size:3.7vw;font-weight:500;color:var(--ink-2);text-transform:capitalize;}
 
-  html[data-theme="dark"] body{background:linear-gradient(155deg,#151c20,#0c1215);color:#cdd6d0;}
-  html[data-theme="dark"]{--ink:#cdd6d0;--ink-dim:#8b948e;--ink-faint:rgba(205,214,208,0.4);--line:rgba(205,214,208,0.2);}
-  html[data-theme="dark"] body::before{background:repeating-linear-gradient(0deg,rgba(170,190,180,0.05) 0px,rgba(170,190,180,0.05) 1px,transparent 2px,transparent 3px);}
-  html[data-theme="dark"] .thead{background:#0e1519;}
-  html[data-theme="dark"] .lab,html[data-theme="dark"] .con-head{background:#141b1f;}
-  html[data-theme="dark"] .card{background:rgba(255,255,255,0.05);}
-  html[data-theme="dark"] .hazard{background:repeating-linear-gradient(45deg,rgba(205,214,208,0.14) 0 1.6vmin,transparent 1.6vmin 3.2vmin);}
+  /* ---- current weather ---- */
+  .now{display:flex;align-items:center;gap:4.4vw;}
+  .now .ico{width:18vw;height:18vw;flex:none;color:var(--accent);}
+  .now .ico svg{width:100%;height:100%;}
+  .now .temp{font-size:13vw;font-weight:800;line-height:.95;}
+  .now .temp sup{font-size:5vw;font-weight:600;vertical-align:top;top:1.4vw;position:relative;color:var(--ink-3);}
+  .now .desc{font-size:3.8vw;font-weight:500;color:var(--ink-2);}
+  .now .metrics{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:1.2vh;}
+  .now .metrics div{font-size:3.4vw;color:var(--ink-2);font-weight:500;}
+  .now .metrics b{color:var(--ink);font-weight:700;}
+  .now .city{font-size:3.2vw;color:var(--ink-3);font-weight:500;margin-top:.4vh;}
+
+  /* ---- week forecast ---- */
+  .sect-title{font-size:2.9vw;font-weight:700;letter-spacing:.18em;color:var(--ink-3);text-transform:uppercase;margin-bottom:2vh;}
+  .week{display:flex;justify-content:space-between;gap:1.5vw;}
+  .day{flex:1;display:flex;flex-direction:column;align-items:center;gap:1vh;padding:1.2vh 0;border-radius:4vw;transition:background .4s;}
+  .day.today{background:var(--accent-soft);}
+  .day .dname{font-size:3vw;font-weight:600;color:var(--ink-2);text-transform:capitalize;}
+  .day .dico{width:7.6vw;height:7.6vw;color:var(--accent);}
+  .day .dico svg{width:100%;height:100%;}
+  .day .dmax{font-size:3.4vw;font-weight:700;}
+  .day .dmin{font-size:3vw;font-weight:500;color:var(--ink-3);}
+
+  /* ---- mini calendar ---- */
+  .cal-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.6vh;}
+  .cal-head .m{font-size:4.4vw;font-weight:700;text-transform:capitalize;}
+  .cal-head .y{font-size:3.4vw;font-weight:500;color:var(--ink-3);}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.6vh 0;text-align:center;}
+  .cal-grid .wd{font-size:2.7vw;font-weight:700;color:var(--ink-3);text-transform:uppercase;padding-bottom:.6vh;}
+  .cal-grid .d{font-size:3.5vw;font-weight:500;color:var(--ink);padding:1vh 0;position:relative;}
+  .cal-grid .d.mut{color:var(--ink-3);opacity:.4;}
+  .cal-grid .d.today{color:#fff;font-weight:700;}
+  .cal-grid .d.today::before{
+    content:"";position:absolute;inset:.4vh 22%;border-radius:50%;
+    background:var(--accent);z-index:-1;box-shadow:0 4px 12px var(--accent-soft);
+  }
+
+  /* ---- accesos ---- */
+  .accesos{margin-top:auto;}
+  .apps{display:flex;justify-content:space-between;gap:3.4vw;}
+  .app{
+    flex:1;aspect-ratio:1;border-radius:5vw;
+    background:var(--glass-strong);
+    border:1px dashed var(--stroke-soft);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    box-shadow:var(--shadow-sm);
+  }
+
+  footer{
+    text-align:center;font-size:2.6vw;letter-spacing:.14em;color:var(--ink-3);
+    font-weight:500;text-transform:uppercase;
+  }
+  footer b{color:var(--ink-2);font-weight:700;}
 </style>
 </head>
 <body>
-  <div class="term">
-    <div class="thead">
-      <div class="ttl">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4">
-          <circle cx="12" cy="12" r="2.6"/><ellipse cx="12" cy="12" rx="10" ry="4"/>
-          <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
-          <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
-        </svg>
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <span class="logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="3.2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/>
+          </svg>
+        </span>
         GEOSAT
       </div>
-      <div class="rgt"><span id="themebtn">◐ AUTO</span></div>
+      <button class="theme-btn" id="themeBtn">◐ AUTO</button>
     </div>
 
+    <!-- clock -->
+    <div class="card hero">
+      <div class="greet" id="greet">Bienvenido</div>
+      <div class="time" id="time">--:--</div>
+      <div class="date" id="date">Cargando fecha…</div>
+    </div>
+
+    <!-- current weather -->
+    <div class="card now">
+      <div class="ico" id="nowIco"></div>
+      <div>
+        <div class="temp" id="nowTemp">--<sup>°</sup></div>
+        <div class="desc" id="nowDesc">Cargando clima…</div>
+      </div>
+      <div class="metrics">
+        <div>Humedad <b id="nowHum">--%</b></div>
+        <div>Viento <b id="nowWind">-- km/h</b></div>
+        <div class="city" id="nowCity">—</div>
+      </div>
+    </div>
+
+    <!-- week forecast -->
     <div class="card">
-      <span class="brk b-tl"></span><span class="brk b-tr"></span><span class="brk b-bl"></span><span class="brk b-br"></span>
-      <div class="lab">HORA LOCAL</div>
-      <div id="greeting">BIENVENIDO</div>
-      <div><span id="clock">--:--</span><span id="ampm"></span></div>
-      <div id="date">Cargando fecha...</div>
-      <div id="weather"><span class="loc">Cargando clima...</span></div>
+      <div class="sect-title">Pronóstico · 7 días</div>
+      <div class="week" id="week"></div>
     </div>
 
-    <div class="card console">
-      <span class="brk b-tl"></span><span class="brk b-tr"></span><span class="brk b-bl"></span><span class="brk b-br"></span>
-      <div class="con-head">METEO_DAEMON --RUN</div>
-      <div id="conlog"></div>
-      <div class="con-prompt">root@geosat:~$ <span class="caret">&#9608;</span></div>
+    <!-- mini calendar -->
+    <div class="card">
+      <div class="cal-head">
+        <span class="m" id="calMonth">—</span>
+        <span class="y" id="calYear"></span>
+      </div>
+      <div class="cal-grid" id="cal"></div>
     </div>
 
-    <div class="card apps">
-      <span class="brk b-tl"></span><span class="brk b-tr"></span><span class="brk b-bl"></span><span class="brk b-br"></span>
-      <div class="lab">ACCESOS</div>
-      <div class="appgrid"><div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div></div>
+    <!-- app shortcuts -->
+    <div class="accesos">
+      <div class="sect-title">Accesos</div>
+      <div class="apps">
+        <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+      </div>
     </div>
 
-    <div class="hazard"></div>
-    <div class="tfoot">
-      <span>ESTACION <b>METEO-SAT</b></span>
-      <span id="geo">LAT --- LONG ---</span>
-    </div>
+    <footer>Estación <b>METEO-SAT</b> · <span id="coords">LAT --- LONG ---</span></footer>
   </div>
+
 <script>
-  const WMO={0:["Despejado"],1:["Casi despejado"],2:["Parcial"],3:["Nublado"],45:["Niebla"],48:["Niebla"],51:["Llovizna"],53:["Llovizna"],55:["Llovizna"],56:["Llov. helada"],57:["Llov. helada"],61:["Lluvia lig."],63:["Lluvia mod."],65:["Lluvia fuerte"],66:["Lluvia hel."],67:["Lluvia hel."],71:["Nieve lig."],73:["Nieve mod."],75:["Nieve fuerte"],77:["Nieve"],80:["Chubasco"],81:["Chubasco"],82:["Torrencial"],85:["Chub. nieve"],86:["Chub. nieve"],95:["Tormenta"],96:["Tormenta"],99:["Tormenta"]};
-  const ICO={sun:'<circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22.5" y2="12"/><line x1="4.5" y1="4.5" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.5" y2="19.5"/><line x1="4.5" y1="19.5" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.5" y2="4.5"/>',pcloud:'<circle cx="7" cy="7" r="2.6"/><line x1="7" y1="2.4" x2="7" y2="3.7"/><line x1="7" y1="10.3" x2="7" y2="11.6"/><line x1="2.4" y1="7" x2="3.7" y2="7"/><line x1="10.3" y1="7" x2="11.6" y2="7"/><path d="M18 12h-1.05A6.5 6.5 0 1 0 10 20h8a4 4 0 0 0 0-8z"/>',cloud:'<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>',fog:'<line x1="3" y1="8" x2="21" y2="8"/><line x1="5" y1="12" x2="19" y2="12"/><line x1="4" y1="16" x2="20" y2="16"/><line x1="7" y1="20" x2="17" y2="20"/>',rain:'<path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><line x1="8" y1="17" x2="7" y2="21"/><line x1="12" y1="17" x2="11" y2="22"/><line x1="16" y1="17" x2="15" y2="21"/>',snow:'<path d="M20 15.58A5 5 0 0 0 18 6h-1.26A8 8 0 1 0 4 14.25"/><line x1="8" y1="18" x2="8.01" y2="18"/><line x1="12" y1="20" x2="12.01" y2="20"/><line x1="16" y1="18" x2="16.01" y2="18"/><line x1="10" y1="22" x2="10.01" y2="22"/><line x1="14" y1="22" x2="14.01" y2="22"/>',storm:'<path d="M19 16.9A5 5 0 0 0 18 7h-1.26a8 8 0 1 0-11.62 9"/><polyline points="12 11 9 16 13 16 10 22"/>'};
-  function wtype(c){c=+c;if(c===0)return"sun";if(c===1||c===2)return"pcloud";if(c===3)return"cloud";if(c===45||c===48)return"fog";if((c>=71&&c<=77)||c===85||c===86)return"snow";if(c>=95)return"storm";return"rain";}
-  function wsvg(c){return '<svg class="wi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+ICO[wtype(c)]+'</svg>';}
-  const NOMBRE="LUIS";
-  var LAT=null, LON=null, CITY="";
+/* ---------- weather icons (WMO) ---------- */
+const I = {
+  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 1.5v2.6M12 19.9v2.6M1.5 12h2.6M19.9 12h2.6M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M19.4 4.6l-1.9 1.9M6.5 17.5l-1.9 1.9"/></svg>',
+  part:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3.2"/><path d="M8 1.8v1.8M1.8 8h1.8M3.9 3.9l1.3 1.3M12.1 3.9l-1.3 1.3"/><path d="M17.5 13a4 4 0 0 0-7.7-1.3A3.3 3.3 0 0 0 7 18h10.2a2.9 2.9 0 0 0 .3-5z" fill="currentColor" fill-opacity=".14"/></svg>',
+  cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M17.5 18a3.4 3.4 0 0 0 .3-6.8 5 5 0 0 0-9.6-1.3A3.9 3.9 0 0 0 7 18z" fill="currentColor" fill-opacity=".14"/></svg>',
+  rain:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 14a3.4 3.4 0 0 0 .3-6.8 5 5 0 0 0-9.6-1.3A3.9 3.9 0 0 0 7 14z" fill="currentColor" fill-opacity=".12"/><path d="M8 18l-1 2M12 18l-1 2M16 18l-1 2"/></svg>',
+  storm:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 13a3.4 3.4 0 0 0 .3-6.8 5 5 0 0 0-9.6-1.3A3.9 3.9 0 0 0 7 13z" fill="currentColor" fill-opacity=".12"/><path d="M12 13l-2.4 4h3l-2 4"/></svg>',
+  snow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 13a3.4 3.4 0 0 0 .3-6.8 5 5 0 0 0-9.6-1.3A3.9 3.9 0 0 0 7 13z" fill="currentColor" fill-opacity=".12"/><path d="M9 18h.01M12 20h.01M15 18h.01M12 17h.01"/></svg>',
+  fog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 9h16M4 13h16M6 17h12M6 5h12"/></svg>'
+};
+function wmo(code){
+  if(code===0) return {i:'sun',t:'Despejado'};
+  if(code===1||code===2) return {i:'part',t:'Parcial'};
+  if(code===3) return {i:'cloud',t:'Nublado'};
+  if(code===45||code===48) return {i:'fog',t:'Niebla'};
+  if(code>=51&&code<=67) return {i:'rain',t:'Llovizna'};
+  if(code>=71&&code<=77) return {i:'snow',t:'Nieve'};
+  if(code>=80&&code<=82) return {i:'rain',t:'Chubascos'};
+  if(code>=85&&code<=86) return {i:'snow',t:'Nieve'};
+  if(code>=95) return {i:'storm',t:'Tormenta'};
+  return {i:'cloud',t:'—'};
+}
 
-  /* ===== Tema claro/oscuro (auto por hora, con toque manual) ===== */
-  var SF_MODE_KEY="sf_thememode";
-  var themeMode="auto";try{themeMode=localStorage.getItem(SF_MODE_KEY)||"auto";}catch(e){}
-  function computeTheme(){if(themeMode==="light")return "light";if(themeMode==="dark")return "dark";var h=new Date().getHours();return (h>=7&&h<18)?"light":"dark";}
-  function applyTheme(){document.documentElement.setAttribute("data-theme",computeTheme());var b=document.getElementById("themebtn");if(b)b.textContent="◐ "+(themeMode==="auto"?"AUTO":themeMode==="light"?"CLARO":"OSCURO");}
-  function cycleTheme(){themeMode=(themeMode==="auto")?"light":(themeMode==="light")?"dark":"auto";try{localStorage.setItem(SF_MODE_KEY,themeMode);}catch(e){}applyTheme();}
-  applyTheme();setInterval(applyTheme,60000);
-  (function(){var b=document.getElementById("themebtn");if(b)b.addEventListener("click",cycleTheme);})();
+/* ---------- theme ---------- */
+const MODES=['auto','light','dark'], LBL={auto:'◐ AUTO',light:'☀ CLARO',dark:'☾ OSCURO'};
+let mode = localStorage.getItem('geo_theme') || 'auto';
+function applyTheme(){
+  let dark;
+  if(mode==='auto'){const h=new Date().getHours(); dark = (h<7||h>=18);}
+  else dark = (mode==='dark');
+  document.body.classList.toggle('dark',dark);
+  document.getElementById('themeBtn').textContent = LBL[mode];
+}
+document.getElementById('themeBtn').addEventListener('click',()=>{
+  mode = MODES[(MODES.indexOf(mode)+1)%3];
+  localStorage.setItem('geo_theme',mode); applyTheme();
+});
 
-  /* ===== Reloj / fecha / saludo ===== */
-  function updateClock(){
-    const now=new Date();let h=now.getHours();const m=now.getMinutes();
-    const ampm=h>=12?"PM":"AM";let hd=h%12;if(hd===0)hd=12;
-    document.getElementById("clock").textContent=hd+":"+(m<10?"0"+m:m);
-    document.getElementById("ampm").textContent=ampm;
-    document.getElementById("date").textContent=now.toLocaleDateString("es-ES",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-    let s="BUENAS NOCHES";if(h>=5&&h<12)s="BUENOS DÍAS";else if(h>=12&&h<20)s="BUENAS TARDES";
-    document.getElementById("greeting").textContent=s+", "+NOMBRE;
+/* ---------- clock ---------- */
+function tick(){
+  const n=new Date();
+  let h=n.getHours(); const m=String(n.getMinutes()).padStart(2,'0');
+  const ampm = h<12?'AM':'PM'; let h12=h%12; if(h12===0)h12=12;
+  document.getElementById('time').innerHTML = h12+':'+m+'<span class="ampm">'+ampm+'</span>';
+  const hh = n.getHours();
+  document.getElementById('greet').textContent = hh<12?'Buenos días':(hh<19?'Buenas tardes':'Buenas noches');
+  document.getElementById('date').textContent =
+    n.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  if(mode==='auto') applyTheme();
+}
+
+/* ---------- calendar ---------- */
+function buildCal(){
+  const n=new Date(), y=n.getFullYear(), mo=n.getMonth(), today=n.getDate();
+  document.getElementById('calMonth').textContent =
+    n.toLocaleDateString('es-ES',{month:'long'});
+  document.getElementById('calYear').textContent = y;
+  const grid=document.getElementById('cal'); grid.innerHTML='';
+  ['L','M','X','J','V','S','D'].forEach(d=>{
+    const e=document.createElement('div'); e.className='wd'; e.textContent=d; grid.appendChild(e);
+  });
+  const first=new Date(y,mo,1); let start=(first.getDay()+6)%7; // Monday=0
+  const days=new Date(y,mo+1,0).getDate();
+  const prev=new Date(y,mo,0).getDate();
+  for(let i=0;i<start;i++){const e=document.createElement('div');e.className='d mut';e.textContent=prev-start+1+i;grid.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const e=document.createElement('div'); e.className='d'+(d===today?' today':''); e.textContent=d; grid.appendChild(e);
   }
-  updateClock();setInterval(updateClock,1000);
+  const total=start+days, rest=(7-(total%7))%7;
+  for(let i=1;i<=rest;i++){const e=document.createElement('div');e.className='d mut';e.textContent=i;grid.appendChild(e);}
+}
 
-  /* ===== Clima por IP ===== */
-  async function geoIP(){
-    try{const r=await fetch("https://ipwho.is/");const d=await r.json();if(d&&d.success!==false&&d.latitude){LAT=d.latitude;LON=d.longitude;CITY=(d.city||"").toUpperCase();return true;}}catch(e){}
-    return false;
+/* ---------- weather ---------- */
+async function loadWeather(){
+  let lat=-23.55, lon=-46.63, city='—';
+  try{
+    const g=await fetch('https://ipwho.is/').then(r=>r.json());
+    if(g&&g.success){lat=g.latitude;lon=g.longitude;city=g.city||g.region||'—';}
+  }catch(e){}
+  document.getElementById('nowCity').textContent = city;
+  document.getElementById('coords').textContent =
+    'LAT '+lat.toFixed(2)+' LONG '+lon.toFixed(2);
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?latitude='+lat+'&longitude='+lon+
+      '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m'+
+      '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7';
+    const w=await fetch(url).then(r=>r.json());
+    const c=w.current, cw=wmo(c.weather_code);
+    document.getElementById('nowTemp').innerHTML = Math.round(c.temperature_2m)+'<sup>°</sup>';
+    document.getElementById('nowDesc').textContent = cw.t;
+    document.getElementById('nowIco').innerHTML = I[cw.i];
+    document.getElementById('nowHum').textContent = c.relative_humidity_2m+'%';
+    document.getElementById('nowWind').textContent = Math.round(c.wind_speed_10m)+' km/h';
+    // week
+    const dn=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const wk=document.getElementById('week'); wk.innerHTML='';
+    for(let i=0;i<7;i++){
+      const dt=new Date(w.daily.time[i]+'T00:00');
+      const dw=wmo(w.daily.weather_code[i]);
+      const el=document.createElement('div'); el.className='day'+(i===0?' today':'');
+      el.innerHTML='<div class="dname">'+(i===0?'Hoy':dn[dt.getDay()])+'</div>'+
+        '<div class="dico">'+I[dw.i]+'</div>'+
+        '<div class="dmax">'+Math.round(w.daily.temperature_2m_max[i])+'°</div>'+
+        '<div class="dmin">'+Math.round(w.daily.temperature_2m_min[i])+'°</div>';
+      wk.appendChild(el);
+    }
+  }catch(e){
+    document.getElementById('nowDesc').textContent='Sin conexión';
   }
-  async function updateWeather(){
-    const wEl=document.getElementById("weather");
-    try{
-      if(LAT===null){await geoIP();}
-      if(LAT===null)throw new Error("sin ubicacion");
-      const url="https://api.open-meteo.com/v1/forecast?latitude="+LAT+"&longitude="+LON+"&current=temperature_2m,weather_code&timezone=auto";
-      const res=await fetch(url);if(!res.ok)throw new Error("HTTP "+res.status);
-      const data=await res.json();const cur=data.current;
-      const desc=(WMO[cur.weather_code]||[""])[0];
-      wEl.className="";
-      wEl.innerHTML='<span class="icon">'+wsvg(cur.weather_code)+'</span><span class="temp">'+Math.round(cur.temperature_2m)+'°C</span><span>'+desc+'</span><span class="sep">•</span><span class="loc">'+(CITY||"")+'</span>';
-      document.getElementById("geo").textContent="EST. "+(CITY||"---")+" · LAT "+Number(LAT).toFixed(2)+" LONG "+Number(LON).toFixed(2);
-    }catch(e){wEl.className="error";wEl.textContent="Clima no disponible";console.error(e);}
-  }
-  updateWeather();setInterval(updateWeather,15*60*1000);
+}
 
-  /* ===== Consola simulada ===== */
-  const conlog=document.getElementById("conlog");
-  const pad=n=>n<10?"0"+n:n;
-  function ts(){const d=new Date();return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds());}
-  function hex(n){let s="";for(let i=0;i<n;i++)s+="0123456789ABCDEF"[Math.floor(Math.random()*16)];return s;}
-  const R=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
-  const POOL=[
-    ()=>'[<span class="con-ok">OK</span>] enlace satelital estable · RSSI -'+R(58,78)+'dB',
-    ()=>'sincronizando sensores meteo... '+R(90,100)+'%',
-    ()=>'rx paquete 0x'+hex(4)+' · '+R(120,980)+' bytes',
-    ()=>'scan sector '+R(0,15)+' · geo-fix OK',
-    ()=>'meteo_daemon: recalculando pronostico...',
-    ()=>'[<span class="con-ok">OK</span>] cache actualizada',
-    ()=>'delta_presion='+(Math.random()*2).toFixed(2)+' mb/h',
-    ()=>'> ejecutando clima.update()',
-    ()=>'buffer '+hex(2)+':'+hex(2)+':'+hex(2)+' verificado',
-    ()=>'uplink estable · '+R(12,64)+' Mbps',
-    ()=>'> fetch open-meteo :: 200 OK'
-  ];
-  let MAX=10;
-  function addLine(){
-    const div=document.createElement("div");div.className="con-line";
-    div.innerHTML='<span class="tsx">'+ts()+'</span> '+POOL[Math.floor(Math.random()*POOL.length)]();
-    conlog.appendChild(div);
-    if(conlog.firstChild)MAX=Math.max(5,Math.floor(conlog.clientHeight/conlog.firstChild.offsetHeight));
-    while(conlog.childElementCount>MAX)conlog.removeChild(conlog.firstChild);
-  }
-  for(let i=0;i<10;i++)addLine();
-  setInterval(addLine,950);
-
+/* ---------- init ---------- */
+applyTheme(); tick(); buildCal(); loadWeather();
+setInterval(tick,1000);
+setInterval(loadWeather,15*60*1000);
+setInterval(buildCal,60*60*1000);
 </script>
 </body>
 </html>
