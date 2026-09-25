@@ -105,17 +105,13 @@
   .hero .time .ampm{font-size:5vw;font-weight:600;color:var(--ink-3);margin-left:1.6vw;}
   .hero .date{font-size:3.7vw;font-weight:500;color:var(--ink-2);text-transform:capitalize;}
 
-  /* ---- current weather ---- */
-  .now{display:flex;align-items:center;gap:4.4vw;}
-  .now .ico{width:18vw;height:18vw;flex:none;color:var(--accent);}
-  .now .ico svg{width:100%;height:100%;}
-  .now .temp{font-size:13vw;font-weight:800;line-height:.95;}
-  .now .temp sup{font-size:5vw;font-weight:600;vertical-align:top;top:1.4vw;position:relative;color:var(--ink-3);}
-  .now .desc{font-size:3.8vw;font-weight:500;color:var(--ink-2);}
-  .now .metrics{margin-left:auto;text-align:right;display:flex;flex-direction:column;gap:1.2vh;}
-  .now .metrics div{font-size:3.4vw;color:var(--ink-2);font-weight:500;}
-  .now .metrics b{color:var(--ink);font-weight:700;}
-  .now .city{font-size:3.2vw;color:var(--ink-3);font-weight:500;margin-top:.4vh;}
+  /* ---- current temp (inside clock card) ---- */
+  .hero-wx{display:flex;align-items:center;gap:2.4vw;margin-top:1.6vh;}
+  .hero-wx .hwx-ico{width:7vw;height:7vw;color:var(--accent);flex:none;display:inline-flex;}
+  .hero-wx .hwx-ico svg{width:100%;height:100%;}
+  .hero-wx .hwx-t{font-size:5.4vw;font-weight:800;}
+  .hero-wx .hwx-d{font-size:3.6vw;font-weight:500;color:var(--ink-2);}
+  .hero-wx .hwx-c{font-size:3.4vw;font-weight:500;color:var(--ink-3);margin-left:auto;}
 
   /* ---- week forecast ---- */
   .sect-title{font-size:2.9vw;font-weight:700;letter-spacing:.18em;color:var(--ink-3);text-transform:uppercase;margin-bottom:2vh;}
@@ -126,7 +122,17 @@
   .tc-day.tc-today{fill:var(--accent);font-weight:800;}
   .tc-min{fill:var(--ink-3);font-weight:500;font-size:21px;}
 
-  /* ---- mini calendar ---- */
+  /* ---- live market (broker ticker) ---- */
+  .market .mk-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.4vh;}
+  .mk-label{font-size:2.9vw;font-weight:700;letter-spacing:.16em;color:var(--ink-3);text-transform:uppercase;}
+  .mk-val{font-size:9vw;font-weight:800;line-height:1;margin-top:.6vh;letter-spacing:-.01em;}
+  .mk-chg{font-size:3.5vw;font-weight:700;padding:1.3vw 3.2vw;border-radius:999px;display:flex;align-items:center;gap:1vw;white-space:nowrap;}
+  .mk-chg.up{color:var(--pos);background:rgba(37,194,110,.14);}
+  .mk-chg.down{color:#e5484d;background:rgba(229,72,77,.14);}
+  .mk-chart{width:100%;}
+  .mk-chart svg{width:100%;height:auto;display:block;overflow:visible;}
+
+  /* ---- mini calendar (unused) ---- */
   .cal-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.6vh;}
   .cal-head .m{font-size:4.4vw;font-weight:700;text-transform:capitalize;}
   .cal-head .y{font-size:3.4vw;font-weight:500;color:var(--ink-3);}
@@ -176,24 +182,16 @@
       <button class="theme-btn" id="themeBtn">◐ AUTO</button>
     </div>
 
-    <!-- clock -->
+    <!-- clock + current temp -->
     <div class="card hero">
       <div class="greet" id="greet">Bienvenido</div>
       <div class="time" id="time">--:--</div>
       <div class="date" id="date">Cargando fecha…</div>
-    </div>
-
-    <!-- current weather -->
-    <div class="card now">
-      <div class="ico" id="nowIco"></div>
-      <div>
-        <div class="temp" id="nowTemp">--<sup>°</sup></div>
-        <div class="desc" id="nowDesc">Cargando clima…</div>
-      </div>
-      <div class="metrics">
-        <div>Humedad <b id="nowHum">--%</b></div>
-        <div>Viento <b id="nowWind">-- km/h</b></div>
-        <div class="city" id="nowCity">—</div>
+      <div class="hero-wx">
+        <span class="hwx-ico" id="nowIco"></span>
+        <span class="hwx-t" id="nowTemp">--°</span>
+        <span class="hwx-d" id="nowDesc">Cargando…</span>
+        <span class="hwx-c" id="nowCity"></span>
       </div>
     </div>
 
@@ -203,13 +201,16 @@
       <div class="chartwrap" id="chart"></div>
     </div>
 
-    <!-- mini calendar -->
-    <div class="card">
-      <div class="cal-head">
-        <span class="m" id="calMonth">—</span>
-        <span class="y" id="calYear"></span>
+    <!-- live market chart (seconds ticker) -->
+    <div class="card market">
+      <div class="mk-top">
+        <div>
+          <div class="mk-label">GEO-INDEX · LIVE</div>
+          <div class="mk-val" id="mkVal">—</div>
+        </div>
+        <div class="mk-chg up" id="mkChg">+0.0% ▲</div>
       </div>
-      <div class="cal-grid" id="cal"></div>
+      <div class="mk-chart" id="mkChart"></div>
     </div>
 
     <!-- app shortcuts -->
@@ -298,6 +299,50 @@ function renderChart(list){
   el.innerHTML=s;
 }
 
+/* ---------- live market (broker candlesticks, 1 candle / sec) ---------- */
+const MK={data:[], base:1024};
+function mkStep(){
+  const d=MK.data;
+  const o = d.length ? d[d.length-1].c : MK.base;
+  const vol = 4 + Math.random()*5;
+  const c = o + (Math.random()-0.5)*vol + (MK.base - o)*0.02; // gentle mean reversion
+  const h = Math.max(o,c) + Math.random()*vol*0.5;
+  const l = Math.min(o,c) - Math.random()*vol*0.5;
+  d.push({o,h,l,c});
+  if(d.length>30) d.shift();
+}
+function renderMarket(){
+  const el=document.getElementById('mkChart'); const d=MK.data;
+  if(!el||!d.length) return;
+  const W=700,H=250,padX=8,padTop=14,padBot=14,n=d.length;
+  let lo=Math.min.apply(null,d.map(x=>x.l)), hi=Math.max.apply(null,d.map(x=>x.h));
+  if(hi===lo){hi+=1;lo-=1;}
+  const yF=v=>padTop+(1-(v-lo)/(hi-lo))*(H-padTop-padBot);
+  const slot=(W-2*padX)/n, bw=Math.min(slot*0.6,15);
+  let s='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet">';
+  d.forEach((x,i)=>{
+    const cx=padX+slot*i+slot/2, up=x.c>=x.o, col=up?'#25c26e':'#e5484d';
+    const yo=yF(x.o),yc=yF(x.c),yh=yF(x.h),yl=yF(x.l);
+    const topY=Math.min(yo,yc), bh=Math.max(Math.abs(yc-yo),2);
+    s+='<line x1="'+cx.toFixed(1)+'" y1="'+yh.toFixed(1)+'" x2="'+cx.toFixed(1)+'" y2="'+yl.toFixed(1)+'" stroke="'+col+'" stroke-width="1.6" opacity=".8"/>';
+    s+='<rect x="'+(cx-bw/2).toFixed(1)+'" y="'+topY.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="1.6" fill="'+col+'"/>';
+  });
+  s+='</svg>'; el.innerHTML=s;
+}
+function stepMarket(){
+  mkStep();
+  const d=MK.data, cur=d[d.length-1].c, ref=d[0].o;
+  const pct=((cur-ref)/ref)*100, up=cur>=ref;
+  const v=document.getElementById('mkVal');
+  const g=document.getElementById('mkChg');
+  if(v) v.textContent=cur.toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1});
+  if(g){
+    g.className='mk-chg '+(up?'up':'down');
+    g.textContent=(up?'+':'')+pct.toFixed(2)+'% '+(up?'▲':'▼');
+  }
+  renderMarket();
+}
+
 /* ---------- theme ---------- */
 const MODES=['auto','light','dark'], LBL={auto:'◐ AUTO',light:'☀ CLARO',dark:'☾ OSCURO'};
 let mode = localStorage.getItem('geo_theme') || 'auto';
@@ -323,6 +368,7 @@ function tick(){
   document.getElementById('greet').textContent = hh<12?'Buenos días':(hh<19?'Buenas tardes':'Buenas noches');
   document.getElementById('date').textContent =
     n.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'});
+  stepMarket();
   if(mode==='auto') applyTheme();
 }
 
@@ -363,11 +409,9 @@ async function loadWeather(){
       '&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=7';
     const w=await fetch(url).then(r=>r.json());
     const c=w.current, cw=wmo(c.weather_code);
-    document.getElementById('nowTemp').innerHTML = Math.round(c.temperature_2m)+'<sup>°</sup>';
+    document.getElementById('nowTemp').textContent = Math.round(c.temperature_2m)+'°';
     document.getElementById('nowDesc').textContent = cw.t;
     document.getElementById('nowIco').innerHTML = I[cw.i];
-    document.getElementById('nowHum').textContent = c.relative_humidity_2m+'%';
-    document.getElementById('nowWind').textContent = Math.round(c.wind_speed_10m)+' km/h';
     // week -> temperature line chart
     const dn=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
     const list=[];
@@ -402,12 +446,12 @@ window.addEventListener('resize',fit);
 window.addEventListener('orientationchange',()=>setTimeout(fit,200));
 
 /* ---------- init ---------- */
-applyTheme(); tick(); buildCal(); loadWeather();
+for(let i=0;i<24;i++) mkStep();      // prefill the market chart
+applyTheme(); tick(); loadWeather();
 requestAnimationFrame(fit);
 setTimeout(fit,300); setTimeout(fit,1500); setTimeout(fit,3000);
 setInterval(tick,1000);
 setInterval(loadWeather,15*60*1000);
-setInterval(()=>{buildCal();fit();},60*60*1000);
 </script>
 </body>
 </html>
